@@ -41,25 +41,25 @@ def forward_backward_prop(X, labels, params, dimensions):
     # Note: compute cost based on `sum` not `mean`.
     ### YOUR CODE HERE: forward propagation
     h = sigmoid(np.dot(X,W1) + b1)
-    output_input = np.dot(h,W2) + b2
-    print output_input.shape
-    output = softmax(output_input)
+    output = softmax(np.dot(h,W2) + b2)
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation
-    cost = - labels * np.log(output)
-    softmax_grad_eq = output[np.cast(labels,bool)] * (1- output[np.cast(labels,bool)])
-    softmax_grad = - output[np.cast(labels,bool)] * output
-    softmax_grad[np.cast(labels,bool)] = softmax_grad_eq[np.cast(labels,bool)]
+    cost = - np.sum(labels * np.log(output),1,keepdims=True)
+    print 'cost shape : %s ' % str(cost.shape)
+    pred_v = np.expand_dims(output[labels==1],1)
+    output_grad = - pred_v * output
+    output_grad[labels==1] = np.squeeze(pred_v * (1- pred_v))
 
-    gradW2 = cost * softmax_grad * h.T
-    gradb2 = cost * softmax_grad
+    dz = cost * output_grad
+    gradW2 = np.dot(h.T,dz)
+    gradb2 = dz
 
-    cost_h = cost * gradW2
+    cost_h = dz.dot(gradW2.T)
 
     h_grad = sigmoid_grad(h)
 
-    gradW1 = cost_h * h_grad * x.T
+    gradW1 = np.dot(X.T,cost_h * h_grad)
     gradb1 = cost_h * h_grad
     ### END YOUR CODE
 

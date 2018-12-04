@@ -38,14 +38,14 @@ def gradcheck_naive(f, x):
 
         ### YOUR CODE HERE:
         random.setstate(rndstate)
-        fx,grad = f(x[ix])
+        x[ix] += h
+        fx_a,_ = f(x)
 
         random.setstate(rndstate)
-        fx_a,grad_a = f(x[ix] + h)
+        x[ix] -= 2*h
+        fx_s,_ = f(x)
 
-        random.setstate(rndstate)
-        fx_s,grad_s = f(x[ix] - h)
-
+        x[ix] += h
         numgrad = (fx_a - fx_s) / (h*2)
 
         ### END YOUR CODE
@@ -86,7 +86,14 @@ def your_sanity_checks():
     """
     print "Running your sanity checks..."
     ### YOUR CODE HERE
-    raise NotImplementedError
+    a = np.array([1.0])
+    b = np.array([2.0])
+    params = np.concatenate((a.flatten(),b.flatten()))
+
+    quad = lambda x : (x[0]**2+x[1]**3,np.array((2*x[0],3*(x[1]**2))))
+
+    gradcheck_naive(quad,params)
+
     ### END YOUR CODE
 
 

@@ -45,22 +45,23 @@ def forward_backward_prop(X, labels, params, dimensions):
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation
-    cost = - np.sum(labels * np.log(output),1,keepdims=True)
-    print 'cost shape : %s ' % str(cost.shape)
-    pred_v = np.expand_dims(output[labels==1],1)
-    output_grad = - pred_v * output
-    output_grad[labels==1] = np.squeeze(pred_v * (1- pred_v))
+    cost = np.sum(-labels * np.log(output)) / X.shape[0]
+    
+    #print 'cost shape : %s ' % str(cost.shape)
+    #pred_v = np.expand_dims(output[labels==1],1)
+    #output_grad = - pred_v * output
+    #output_grad[labels==1] = np.squeeze(pred_v * (1- pred_v))
 
-    dz = cost * output_grad
+    dz = (output - labels) / X.shape[0]
     gradW2 = np.dot(h.T,dz)
-    gradb2 = dz
+    gradb2 = np.sum(dz,0)
 
-    cost_h = dz.dot(gradW2.T)
+    dz_h = dz.dot(W2.T)
 
     h_grad = sigmoid_grad(h)
 
-    gradW1 = np.dot(X.T,cost_h * h_grad)
-    gradb1 = cost_h * h_grad
+    gradW1 = np.dot(X.T,dz_h * h_grad)
+    gradb1 = np.sum(dz_h * h_grad,0)
     ### END YOUR CODE
 
     ### Stack gradients (do not modify)
@@ -100,7 +101,7 @@ def your_sanity_checks():
     """
     print "Running your sanity checks..."
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #raise NotImplementedError
     ### END YOUR CODE
 
 

@@ -2,7 +2,8 @@
 
 import numpy as np
 import random
-
+from q1_softmax import softmax
+from q2_sigmoid import sigmoid,sigmoid_grad
 
 # First implement a gradient checker by filling in the following functions
 def gradcheck_naive(f, x):
@@ -89,13 +90,28 @@ def your_sanity_checks():
     a = np.array([1.0])
     b = np.array([2.0])
     params = np.concatenate((a.flatten(),b.flatten()))
-
     quad = lambda x : (x[0]**2+x[1]**3,np.array((2*x[0],3*(x[1]**2))))
-
     gradcheck_naive(quad,params)
 
+    labels = np.zeros([5,5])
+    for i in range(labels.shape[0]):
+        labels[i,i] = 1
+    
+    print "check sigmoid ..."
+    check_sigmoid = lambda x: (np.sum(sigmoid(x)),sigmoid_grad(sigmoid(x)))
+    gradcheck_naive(check_sigmoid,np.random.rand(5,5))
+
+    print "check softmax cross entropy"
+    check_softmax = lambda x: (np.sum(-np.log(softmax(x)[labels==1]))/labels.shape[0],softmax_ce_grad(softmax(x),labels))
+    gradcheck_naive(check_softmax,np.random.rand(5,5))
     ### END YOUR CODE
 
+def softmax_ce_grad(outputs,labels):
+    grad_ce = np.sum(-labels/outputs/labels.shape[0],1,keepdims=True)
+
+    grad_softmax = -np.expand_dims(outputs[labels==1],1) * outputs
+    grad_softmax[labels==1] = outputs[labels==1]*(1-outputs[labels==1])
+    return grad_ce * grad_softmax
 
 if __name__ == "__main__":
     sanity_check()

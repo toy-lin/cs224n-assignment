@@ -3,11 +3,12 @@
 # Save parameters every a few SGD iterations as fail-safe
 SAVE_PARAMS_EVERY = 5000
 
-import glob
-import random
-import numpy as np
-import os.path as op
 import cPickle as pickle
+import glob
+import os.path as op
+import random
+
+import numpy as np
 
 
 def load_saved_params():
@@ -85,7 +86,9 @@ def sgd(f, x0, step, iterations, postprocessing=None, useSaved=False,
 
         cost = None
         ### YOUR CODE HERE
-        raise NotImplementedError
+        cost, grad = f(x)
+        x -= grad * step
+        x = postprocessing(x)
         ### END YOUR CODE
 
         if iter % PRINT_EVERY == 0:
@@ -132,7 +135,20 @@ def your_sanity_checks():
     """
     print "Running your sanity checks..."
     ### YOUR CODE HERE
-    raise NotImplementedError
+    quad = lambda x: (np.sum(x ** 4), 4 * x ** 3)
+
+    print "Running sanity checks..."
+    t1 = sgd(quad, 0.5, 1, 1000, PRINT_EVERY=100)
+    print "test 1 result:", t1
+    assert abs(t1) <= 1e-6
+
+    t2 = sgd(quad, 0.0, 1, 1000, PRINT_EVERY=100)
+    print "test 2 result:", t2
+    assert abs(t2) <= 1e-6
+
+    t3 = sgd(quad, -1.5, 0.01, 1000, PRINT_EVERY=100)
+    print "test 3 result:", t3
+    assert abs(t3) <= 0.2
     ### END YOUR CODE
 
 

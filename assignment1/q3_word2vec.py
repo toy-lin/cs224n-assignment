@@ -109,22 +109,26 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
 
     ### YOUR CODE HERE
     vec_target_word = outputVectors[target]
-    mat_sample_k = outputVectors[indices]
+    mat_sample_k = outputVectors[indices[1:]]
 
-    cost = -np.log(sigmoid(np.dot(predicted, vec_target_word))) - np.sum(
-        np.log(sigmoid(np.dot(-mat_sample_k, predicted))))
+    # two items from negative sample loss formula
+    z = sigmoid(np.dot(predicted, vec_target_word))
+    pred = sigmoid(np.dot(-mat_sample_k, predicted))
 
-    gradPred = (sigmoid(np.dot(predicted, vec_target_word)) - 1) * vec_target_word - np.dot(mat_sample_k.T, sigmoid(
-        np.dot(-mat_sample_k, predicted)) - 1)
+    # negative sample loss
+    cost = -np.log(z) - np.sum(np.log(pred))
 
-    grad_k = np.dot(-(sigmoid(np.dot(-mat_sample_k, predicted)) - 1)[:, None], predicted[None, :])
+    # grad for inputVectors
+    gradPred = (z - 1) * vec_target_word - np.dot(mat_sample_k.T, pred - 1)
 
     grad = np.zeros(outputVectors.shape)
-    for index, ii in enumerate(indices):
+    # calculate grad for k negative samples
+    grad_k = np.dot(-(pred - 1)[:, None], predicted[None, :])
+    for index, ii in enumerate(indices[1:]):
         grad[ii] += grad_k[index]
-
-    grad_o = (sigmoid(np.dot(vec_target_word, predicted)) - 1) * predicted
-    grad[target] += grad_o
+    # calculate grad for o
+    grad[target, :] = -grad[target, :]
+    grad[target] = (z - 1) * predicted
     ### END YOUR CODE
 
     return cost, gradPred, grad

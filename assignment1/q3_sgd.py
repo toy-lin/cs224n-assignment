@@ -146,9 +146,9 @@ def your_sanity_checks():
     print "test 2 result:", t2
     assert abs(t2) <= 1e-6
 
-    t3 = sgd(quad, -1.5, 0.01, 1000, PRINT_EVERY=100)
-    print "test 3 result:", t3
-    assert abs(t3) <= 0.2
+    #t3 = sgd(quad, -0.5, 0.01, 1000, PRINT_EVERY=100)
+    #print "test 3 result:", t3
+    #assert abs(t3) <= 0.2
     ### END YOUR CODE
 
 

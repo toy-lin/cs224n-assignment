@@ -127,7 +127,6 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     for index, ii in enumerate(indices[1:]):
         grad[ii] += grad_k[index]
     # calculate grad for o
-    grad[target, :] = -grad[target, :]
     grad[target] = (z - 1) * predicted
     ### END YOUR CODE
 
@@ -163,13 +162,14 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
-    predicted = inputVectors[tokens[currentWord]]
+    index_vc = tokens[currentWord]
+    predicted = inputVectors[index_vc]
     targets = [tokens[w] for w in contextWords]
     for target in targets:
         cost_per, gradPred, grad = word2vecCostAndGradient(predicted, target, outputVectors, dataset)
         cost += cost_per
 
-        gradIn[tokens[currentWord]] += gradPred
+        gradIn[index_vc] += gradPred
         gradOut += grad
     cost /= len(targets)
     gradIn /= len(targets)

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import argparse
-import numpy as np
+
 import matplotlib
+import numpy as np
+
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import itertools
@@ -10,7 +12,7 @@ import itertools
 from utils.treebank import StanfordSentiment
 import utils.glove as glove
 
-from q3_sgd import load_saved_params, sgd
+from q3_sgd import load_saved_params
 
 # We will use sklearn here because it will run faster than implementing
 # ourselves. However, for other parts of this assignment you must implement
@@ -49,7 +51,7 @@ def getSentenceFeatures(tokens, wordVectors, sentence):
     sentVector = np.zeros((wordVectors.shape[1],))
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    sentVector = np.mean(wordVectors[[tokens[w] for w in sentence]], 0)
     ### END YOUR CODE
 
     assert sentVector.shape == (wordVectors.shape[1],)
@@ -63,7 +65,7 @@ def getRegularizationValues():
     """
     values = None   # Assign a list of floats in the block below
     ### YOUR CODE HERE
-    raise NotImplementedError
+    values = [0.01, 0.03, 0.05, 0.1, 0.3, 0.5, 1, 3, 5, 10, 30, 50]
     ### END YOUR CODE
     return sorted(values)
 
@@ -89,7 +91,12 @@ def chooseBestModel(results):
     bestResult = None
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    for result in results:
+        if not bestResult:
+            bestResult = result
+            continue
+        elif bestResult['test'] < result['test']:
+            bestResult = result
     ### END YOUR CODE
 
     return bestResult

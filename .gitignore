@@ -2,3 +2,4 @@
 .idea/
 assignment1/utils/
 assignment1/saved_params*
+assignment1/*.pyc

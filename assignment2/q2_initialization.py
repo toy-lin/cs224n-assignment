@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import tensorflow as tf
 
@@ -11,6 +13,7 @@ def xavier_weight_init():
 
     Hint: You might find tf.random_uniform useful.
     """
+
     def _xavier_initializer(shape, **kwargs):
         """Defines an initializer for the Xavier distribution.
         Specifically, the output should be sampled uniformly from [-epsilon, epsilon] where
@@ -25,9 +28,11 @@ def xavier_weight_init():
             out: tf.Tensor of specified shape sampled from the Xavier distribution.
         """
         ### YOUR CODE HERE
-        out = None
+        epsilon = math.sqrt(6.0 / np.sum(shape))
+        out = tf.random_uniform(shape, minval=-epsilon, maxval=epsilon, dtype=tf.float32)
         ### END YOUR CODE
         return out
+
     # Returns defined initializer function.
     return _xavier_initializer
 

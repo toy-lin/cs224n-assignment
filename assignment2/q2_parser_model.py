@@ -19,11 +19,11 @@ class Config(object):
     n_features = 36
     n_classes = 3
     dropout = 0.5  # (p_drop in the handout)
-    embed_size = 64
-    hidden_size = 512
+    embed_size = 50
+    hidden_size = 1024
     batch_size = 1024
     n_epochs = 10
-    lr = 0.0005
+    lr = 0.0002
 
 
 class ParserModel(Model):

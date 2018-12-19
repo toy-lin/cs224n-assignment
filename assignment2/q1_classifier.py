@@ -95,10 +95,12 @@ class SoftmaxModel(Model):
             pred: A tensor of shape (batch_size, n_classes)
         """
         ### YOUR CODE HERE
+
         w = tf.Variable(initial_value=
-                        tf.truncated_normal(shape=(self.config.n_features, self.config.n_classes), dtype=tf.float32,
-                                            name='weight'))
-        b = tf.Variable(initial_value=tf.zeros((1, self.config.n_classes), dtype=tf.float32, name='bias'))
+                        tf.zeros(shape=(self.config.n_features, self.config.n_classes), dtype=tf.float32),
+                        name='weight')
+        b = tf.Variable(initial_value=tf.zeros((1, self.config.n_classes), dtype=tf.float32), name='bias')
+
         z = tf.add(tf.matmul(self.input_placeholder, w), b)
         pred = softmax(z)
         ### END YOUR CODE

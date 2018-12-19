@@ -39,17 +39,14 @@ class PartialParse(object):
             if len(self.buffer) < 1:
                 return
             self.stack.append(self.buffer.pop(0))
-        else:
-            if len(self.stack) < 2:
-                return
-            if 'LA' == transition:
-                second = self.stack[-1]
-                first = self.stack.pop(-2)
-                self.dependencies.append((second, first))
-            elif 'RA' == transition:
-                second = self.stack.pop()
-                first = self.stack[-1]
-                self.dependencies.append((first, second))
+        elif 'LA' == transition:
+            second = self.stack[-1]
+            first = self.stack.pop(-2)
+            self.dependencies.append((second, first))
+        elif 'RA' == transition:
+            second = self.stack.pop()
+            first = self.stack[-1]
+            self.dependencies.append((first, second))
         ### END YOUR CODE
 
     def parse(self, transitions):
@@ -85,9 +82,9 @@ def minibatch_parse(sentences, model, batch_size):
 
     ### YOUR CODE HERE
     dependencies = []
+    partial_parses = [PartialParse(sentence) for sentence in sentences]
     for ii in range(0, len(sentences), batch_size):
-        partial_parses = [PartialParse(sentences[j]) for j in range(ii, ii + batch_size)]
-        partial_parses_filter = partial_parses
+        partial_parses_filter = partial_parses[ii:min(ii + batch_size, len(sentences))]
         while True:
             partial_parses_filter = [parse for parse in partial_parses_filter if
                                      len(parse.stack) > 1 or len(parse.buffer) > 0]
@@ -99,8 +96,8 @@ def minibatch_parse(sentences, model, batch_size):
             for i_pp in range(len(partial_parses_filter)):
                 partial_parses_filter[i_pp].parse_step(transitions[i_pp])
 
-        for p in partial_parses:
-            dependencies.append(p.dependencies)
+    for p in partial_parses:
+        dependencies.append(p.dependencies)
 
     ### END YOUR CODE
 

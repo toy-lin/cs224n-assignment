@@ -1,11 +1,11 @@
-import pickle
 import os
+import pickle
 import time
-import tensorflow as tf
 
-from .model import Model
-from .q2_initialization import xavier_weight_init
-from .utils.parser_utils import minibatches, load_and_preprocess_data
+import tensorflow as tf
+from model import Model
+from q2_initialization import xavier_weight_init
+from utils.parser_utils import minibatches, load_and_preprocess_data
 
 
 class Config(object):
@@ -19,8 +19,8 @@ class Config(object):
     n_features = 36
     n_classes = 3
     dropout = 0.5  # (p_drop in the handout)
-    embed_size = 50
-    hidden_size = 200
+    embed_size = 64
+    hidden_size = 512
     batch_size = 1024
     n_epochs = 10
     lr = 0.0005
@@ -54,6 +54,11 @@ class ParserModel(Model):
         (Don't change the variable names)
         """
         ### YOUR CODE HERE
+        self.input_placeholder = tf.placeholder(dtype=tf.int32,
+                                                shape=(None, self.config.n_features), name='input')
+        self.labels_placeholder = tf.placeholder(dtype=tf.float32,
+                                                 shape=(None, self.config.n_classes), name='label')
+        self.dropout_placeholder = tf.placeholder(dtype=tf.float32, name='dropout')
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None, dropout=0):
@@ -79,7 +84,13 @@ class ParserModel(Model):
             feed_dict: The feed dictionary mapping from placeholders to values.
         """
         ### YOUR CODE HERE
-        feed_dict = None
+        feed_dict = {
+            self.input_placeholder: inputs_batch,
+            # self.labels_placeholder: labels_batch,
+            self.dropout_placeholder: 1 - dropout
+        }
+        if labels_batch is not None:
+            feed_dict[self.labels_placeholder] = labels_batch
         ### END YOUR CODE
         return feed_dict
 
@@ -101,7 +112,8 @@ class ParserModel(Model):
             embeddings: tf.Tensor of shape (None, n_features*embed_size)
         """
         ### YOUR CODE HERE
-        embeddings = None
+        embeddings = tf.nn.embedding_lookup(self.pretrained_embeddings, self.input_placeholder, name='embedding_lookup')
+        embeddings = tf.reshape(embeddings, [-1, self.config.n_features * self.config.embed_size], name='reshape')
         ### END YOUR CODE
         return embeddings
 
@@ -128,7 +140,16 @@ class ParserModel(Model):
 
         x = self.add_embedding()
         ### YOUR CODE HERE
-        pred = None
+        xavier = xavier_weight_init()
+        W = tf.Variable(
+            initial_value=xavier(shape=(self.config.n_features * self.config.embed_size, self.config.hidden_size)),
+            name='W')
+        b1 = tf.Variable(initial_value=tf.zeros(shape=(1, self.config.hidden_size)), name='b1')
+        U = tf.Variable(initial_value=xavier(shape=(self.config.hidden_size, self.config.n_classes)), name='U')
+        b2 = tf.Variable(initial_value=tf.zeros(shape=(1, self.config.n_classes)), name='b2')
+        h = tf.nn.relu(tf.add(tf.matmul(x, W), b1))
+        h_drop = tf.nn.dropout(h, keep_prob=self.dropout_placeholder)
+        pred = tf.add(tf.matmul(h_drop, U), b2)
         ### END YOUR CODE
         return pred
 
@@ -146,7 +167,7 @@ class ParserModel(Model):
             loss: A 0-d tensor (scalar)
         """
         ### YOUR CODE HERE
-        loss = 0
+        loss = tf.nn.softmax_cross_entropy_with_logits_v2(logits=pred, labels=self.labels_placeholder, name='loss')
         ### END YOUR CODE
         return loss
 
@@ -171,7 +192,7 @@ class ParserModel(Model):
             train_op: The Op for training.
         """
         ### YOUR CODE HERE
-        train_op = None
+        train_op = tf.train.AdamOptimizer(learning_rate=self.config.lr).minimize(loss)
         ### END YOUR CODE
         return train_op
 
@@ -186,7 +207,8 @@ class ParserModel(Model):
         prog = tf.keras.utils.Progbar(target=n_minibatches)
         for i, (train_x, train_y) in enumerate(minibatches(train_examples, self.config.batch_size)):
             loss = self.train_on_batch(sess, train_x, train_y)
-            prog.update(i + 1, [("train loss", loss)], force=i + 1 == n_minibatches)
+            if i + 2 < n_minibatches:
+                prog.update(i + 1, [("train loss", loss)])
 
         print("Evaluating on dev set")
         dev_UAS, _ = parser.parse(dev_set)
@@ -211,7 +233,7 @@ class ParserModel(Model):
         self.build()
 
 
-def main(debug=True):
+def main(debug=False):
     print(80 * "=")
     print("INITIALIZING")
     print(80 * "=")
@@ -249,11 +271,10 @@ def main(debug=True):
             UAS, dependencies = parser.parse(test_set)
             print("- test UAS: {:.2f}".format(UAS * 100.0))
             print("Writing predictions")
-            with open('q2_test.predicted.pkl', 'w') as f:
+            with open('q2_test.predicted.pkl', 'wb') as f:
                 pickle.dump(dependencies, f, -1)
             print("Done!")
 
 
 if __name__ == '__main__':
     main()
-
